@@ -1,10 +1,21 @@
 import { MqCaptureFailImpl } from '../unierror.uts'
 import {
+  MqCaptureFormat,
+  MqCaptureResult,
   MqCaptureScreen,
   MqCaptureScreenOptions,
   MqStitchImages,
   MqStitchImagesOptions,
 } from '../interface.uts'
+
+export {
+  MqCaptureFormat,
+  MqCaptureResult,
+  MqCaptureScreen,
+  MqCaptureScreenOptions,
+  MqStitchImages,
+  MqStitchImagesOptions,
+}
 
 /**
  * Web / H5：浏览器安全限制下无法稳定截取整窗。

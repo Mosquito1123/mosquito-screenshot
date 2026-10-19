@@ -1,0 +1,9 @@
+{
+  "module": {
+    "deviceTypes": [
+      "phone",
+      "tablet",
+      "2in1"
+    ]
+  }
+}

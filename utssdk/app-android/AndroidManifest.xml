@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+  package="io.dcloud.uni_modules.mosquito_screenshot">
+  <!--
+    截取本应用窗口并写入应用缓存目录，不需要 WRITE_EXTERNAL_STORAGE /
+    MediaProjection 等敏感权限。若业务后续改为保存系统相册，再在宿主工程或本文件补充。
+  -->
+</manifest>

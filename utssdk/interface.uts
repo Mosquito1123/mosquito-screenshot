@@ -1,6 +1,10 @@
 /**
- * 蚊式截屏插件对外契约。
- * uni-app / uni-app x 共用；各端在 app-android / app-ios / app-harmony / web 等目录实现。
+ * 蚊式截屏插件对外契约（interface.uts）。
+ * uni-app / uni-app x 共用；各端在 app-android / app-ios / app-harmony / web 等目录的 index.uts 实现。
+ *
+ * @tutorial https://uniapp.dcloud.net.cn/plugin/uts-plugin.html
+ * @platforms APP-ANDROID = ^21, APP-IOS = ^12.0, APP-HARMONY = ^12
+ * @since 0.1.0
  */
 
 export type MqCaptureFormat = 'png' | 'jpg'

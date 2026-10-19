@@ -129,29 +129,38 @@ uni-app x 把扩展名改成 `.uvue`。x 端截长图请传入 `content-height`�
 
 ## 注意
 
-- 截图写在应用缓存目录，不会上传、不采集用户数据。
+- 截图写在应用缓存目录，不会上传、不采集用户数据；**不申请**相册/存储等敏感权限。
 - 长图有 `maxHeight`（默认 20000px），避免内存暴涨。
 - 局部 `scroll-view` 的长图：请自行滚动该区域，循环调用 `captureScreen`，再 `stitchImages`；组件默认编排的是**页面级**滚动。
-- UTS 源码需在 HBuilderX 或 uni-app App 自定义基座里编译；本仓库的 GitHub Actions 只跑 `helpers` 的纯计算测试，不会编译原生。
+- UTS 源码需在 HBuilderX 或 uni-app App 自定义基座里编译；鸿蒙需 **HBuilderX 4.61+**。本仓库 CI 只跑 `helpers` 纯计算测试，不编译原生。
+- 目录与原生配置遵循 [UTS 插件规范](https://uniapp.dcloud.net.cn/plugin/uts-plugin.html)。
 
 ## 目录
 
 ```text
 mosquito-screenshot/
+  package.json
+  index.d.ts
+  changelog.md
   utssdk/
     interface.uts
     unierror.uts
-    app-android/index.uts
-    app-ios/index.uts
+    app-android/
+      index.uts
+      config.json
+      AndroidManifest.xml
+    app-ios/
+      index.uts
+      config.json
     app-harmony/
       index.uts
       ScreenshotNative.ets
+      config.json
+      module.json5
     web/index.uts
     mp-weixin/index.uts
   components/mq-screenshot/
     mq-screenshot.vue
     mq-screenshot.uvue
-  helpers/segment.ts
-  README.md
-  package.json
+  helpers/
 ```
