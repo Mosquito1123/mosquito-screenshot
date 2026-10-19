@@ -1,0 +1,24 @@
+import { MqCaptureFailImpl } from '../unierror.uts'
+import {
+  MqCaptureScreen,
+  MqCaptureScreenOptions,
+  MqStitchImages,
+  MqStitchImagesOptions,
+} from '../interface.uts'
+
+/**
+ * 微信小程序没有开放整窗截屏能力，这里明确失败，避免静默空实现。
+ */
+function reject(options : MqCaptureScreenOptions | MqStitchImagesOptions) {
+  const err = new MqCaptureFailImpl(9011001)
+  options.fail?.(err)
+  options.complete?.(err)
+}
+
+export const captureScreen : MqCaptureScreen = function (options : MqCaptureScreenOptions) {
+  reject(options)
+}
+
+export const stitchImages : MqStitchImages = function (options : MqStitchImagesOptions) {
+  reject(options)
+}

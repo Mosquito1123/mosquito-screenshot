@@ -1,0 +1,25 @@
+import { MqCaptureFailImpl } from '../unierror.uts'
+import {
+  MqCaptureScreen,
+  MqCaptureScreenOptions,
+  MqStitchImages,
+  MqStitchImagesOptions,
+} from '../interface.uts'
+
+/**
+ * Web / H5：浏览器安全限制下无法稳定截取整窗。
+ * 长图请在 App 端使用；H5 可自行用 html2canvas 等方案。
+ */
+function reject(options : MqCaptureScreenOptions | MqStitchImagesOptions) {
+  const err = new MqCaptureFailImpl(9011001)
+  options.fail?.(err)
+  options.complete?.(err)
+}
+
+export const captureScreen : MqCaptureScreen = function (options : MqCaptureScreenOptions) {
+  reject(options)
+}
+
+export const stitchImages : MqStitchImages = function (options : MqStitchImagesOptions) {
+  reject(options)
+}

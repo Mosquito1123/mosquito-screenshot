@@ -1,0 +1,207 @@
+<template>
+  <view class="mq-screenshot">
+    <slot />
+  </view>
+</template>
+
+<script setup lang="uts">
+/**
+ * uni-app x 版本。
+ * `capture` 截当前窗口；`captureLong` 需传入 contentHeight（可滚动内容高度）。
+ */
+import { captureScreen, stitchImages } from '@/uni_modules/mosquito-screenshot'
+
+type ShotResult = {
+  path : string
+  width : number
+  height : number
+}
+
+type Segment = {
+  scrollTop : number
+  cropTop : number
+  keepHeight : number
+}
+
+const props = withDefaults(
+  defineProps<{
+    format ?: string
+    quality ?: number
+    overlap ?: number
+    settleDelay ?: number
+    maxHeight ?: number
+    /** 长图用的内容总高度（px）。x 端请测量后传入。 */
+    contentHeight ?: number
+  }>(),
+  {
+    format: 'png',
+    quality: 90,
+    overlap: 0,
+    settleDelay: 280,
+    maxHeight: 20000,
+    contentHeight: 0,
+  },
+)
+
+const emit = defineEmits(['progress', 'success', 'fail'])
+
+function wait(ms : number) : Promise<void> {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve()
+    }, ms)
+  })
+}
+
+function buildSegments(contentHeight : number, viewportHeight : number, overlap : number, maxHeight : number) : Segment[] {
+  const segments = [] as Segment[]
+  if (contentHeight <= 0 || viewportHeight <= 0) {
+    return segments
+  }
+  const target = Math.min(contentHeight, maxHeight)
+  if (target <= viewportHeight) {
+    segments.push({
+      scrollTop: 0,
+      cropTop: 0,
+      keepHeight: target,
+    } as Segment)
+    return segments
+  }
+  const step = Math.max(1, viewportHeight - overlap)
+  let covered = 0
+  let index = 0
+  while (covered < target && index < 500) {
+    const scrollTop = Math.min(index * step, Math.max(0, contentHeight - viewportHeight))
+    const remaining = target - covered
+    const cropTop = index == 0 ? 0 : overlap
+    const keepHeight = Math.min(viewportHeight - cropTop, remaining)
+    segments.push({
+      scrollTop,
+      cropTop,
+      keepHeight,
+    } as Segment)
+    covered += keepHeight
+    index++
+    if (scrollTop >= contentHeight - viewportHeight) {
+      break
+    }
+  }
+  return segments
+}
+
+function captureOnce() : Promise<ShotResult> {
+  return new Promise((resolve, reject) => {
+    captureScreen({
+      format: props.format == 'jpg' ? 'jpg' : 'png',
+      quality: props.quality,
+      success: (res) => {
+        resolve({
+          path: res.path,
+          width: res.width,
+          height: res.height,
+        } as ShotResult)
+      },
+      fail: (err) => {
+        reject(err)
+      },
+    })
+  })
+}
+
+function capture() : Promise<ShotResult> {
+  return captureOnce().then((res : ShotResult) => {
+    emit('success', res)
+    return res
+  }).catch((err) => {
+    emit('fail', err)
+    return Promise.reject(err)
+  })
+}
+
+function captureLong() : Promise<ShotResult> {
+  const sys = uni.getSystemInfoSync()
+  const viewportHeight = sys.windowHeight
+  const contentHeight = props.contentHeight! > 0 ? props.contentHeight! : viewportHeight
+  const segments = buildSegments(contentHeight, viewportHeight, props.overlap!, props.maxHeight!)
+  if (segments.length == 0) {
+    const err = {
+      errCode: 9011002,
+      errMsg: '请传入 contentHeight',
+    }
+    emit('fail', err)
+    return Promise.reject(err)
+  }
+
+  const paths = [] as string[]
+  const sliceHeights = [] as number[]
+  const sliceOffsets = [] as number[]
+
+  return new Promise((resolve, reject) => {
+    let index = 0
+    const runNext = () => {
+      if (index >= segments.length) {
+        stitchImages({
+          paths,
+          format: props.format == 'jpg' ? 'jpg' : 'png',
+          quality: props.quality,
+          sliceHeights,
+          sliceOffsets,
+          success: (res) => {
+            uni.pageScrollTo({
+              scrollTop: 0,
+              duration: 0,
+            })
+            const result = {
+              path: res.path,
+              width: res.width,
+              height: res.height,
+            } as ShotResult
+            emit('success', result)
+            resolve(result)
+          },
+          fail: (err) => {
+            emit('fail', err)
+            reject(err)
+          },
+        })
+        return
+      }
+      const segment = segments[index]
+      emit('progress', {
+        current: index + 1,
+        total: segments.length,
+      })
+      uni.pageScrollTo({
+        scrollTop: segment.scrollTop,
+        duration: 0,
+        complete: () => {
+          wait(props.settleDelay!).then(() => {
+            captureOnce().then((shot : ShotResult) => {
+              paths.push(shot.path)
+              sliceHeights.push(segment.keepHeight)
+              sliceOffsets.push(segment.cropTop)
+              index++
+              runNext()
+            }).catch((err) => {
+              emit('fail', err)
+              reject(err)
+            })
+          })
+        },
+      })
+    }
+    runNext()
+  })
+}
+
+defineExpose({
+  capture,
+  captureLong,
+})
+</script>
+
+<style>
+.mq-screenshot {
+  display: block;
+}
+</style>

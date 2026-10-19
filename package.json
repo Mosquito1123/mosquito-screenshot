@@ -1,0 +1,115 @@
+{
+  "id": "mosquito-screenshot",
+  "name": "@mosquito/uts-screenshot",
+  "displayName": "蚊式截屏 / 截长图",
+  "version": "0.1.0",
+  "description": "UTS 截屏与截长图插件，兼容 uni-app 与 uni-app x。App 端原生实现，组件层编排长图滚动。",
+  "keywords": [
+    "uni-app",
+    "uni-app-x",
+    "uts",
+    "screenshot",
+    "截屏",
+    "截长图",
+    "mosquito"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Mosquito1123/mosquito-screenshot.git"
+  },
+  "license": "MIT",
+  "engines": {
+    "HBuilderX": "^3.99",
+    "node": ">=18"
+  },
+  "scripts": {
+    "test": "node --import tsx --test --test-concurrency=1 test/*.test.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "devDependencies": {
+    "tsx": "^4.20.5",
+    "typescript": "^5.6.3"
+  },
+  "files": [
+    "utssdk",
+    "components",
+    "helpers",
+    "README.md"
+  ],
+  "dcloudext": {
+    "type": "uts",
+    "sale": {
+      "regular": {
+        "price": "0.00"
+      }
+    },
+    "contact": {
+      "qq": ""
+    },
+    "declaration": {
+      "ads": "无",
+      "data": "插件不采集用户数据，截图仅写入应用缓存目录",
+      "permissions": "App 端需要读写应用缓存目录以保存截图文件"
+    },
+    "npmurl": "",
+    "darkmode": "x",
+    "i18n": "x",
+    "widescreen": "x"
+  },
+  "uni_modules": {
+    "dependencies": [],
+    "encrypt": [],
+    "platforms": {
+      "cloud": {
+        "tcb": "x",
+        "aliyun": "x",
+        "alipay": "x"
+      },
+      "client": {
+        "uni-app": {
+          "vue": {
+            "app-android": {
+              "extVersion": "",
+              "minVersion": "21"
+            },
+            "app-ios": {
+              "extVersion": "",
+              "minVersion": ""
+            },
+            "app-harmony": "n",
+            "mp-weixin": "n",
+            "mp-alipay": "n",
+            "h5": "u"
+          },
+          "vue3": {
+            "app-android": {
+              "extVersion": "",
+              "minVersion": "21"
+            },
+            "app-ios": {
+              "extVersion": "",
+              "minVersion": ""
+            },
+            "app-harmony": "n",
+            "mp-weixin": "n",
+            "mp-alipay": "n",
+            "h5": "u"
+          }
+        },
+        "uni-app-x": {
+          "app-android": {
+            "extVersion": "",
+            "minVersion": "21"
+          },
+          "app-ios": {
+            "extVersion": "",
+            "minVersion": ""
+          },
+          "app-harmony": "n",
+          "mp-weixin": "n",
+          "web": "u"
+        }
+      }
+    }
+  }
+}

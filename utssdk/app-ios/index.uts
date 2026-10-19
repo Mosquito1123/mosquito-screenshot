@@ -1,0 +1,160 @@
+/**
+ * iOS 窗口截图与图片拼接。
+ * 语法以 DCloud UTS iOS 约定为准；请在 HBuilderX / uni-app App-iOS 中编译验证。
+ */
+import { UIApplication, UIGraphicsBeginImageContextWithOptions, UIGraphicsGetImageFromCurrentImageContext, UIGraphicsEndImageContext, UIImage, UIImageJPEGRepresentation, UIImagePNGRepresentation } from 'UIKit'
+import { NSData, NSSearchPathForDirectoriesInDomains, NSCachesDirectory, NSUserDomainMask } from 'Foundation'
+import { CGRectMake, CGSizeMake } from 'CoreGraphics'
+import { MqCaptureFailImpl } from '../unierror.uts'
+import {
+  MqCaptureFormat,
+  MqCaptureResult,
+  MqCaptureScreen,
+  MqCaptureScreenOptions,
+  MqStitchImages,
+  MqStitchImagesOptions,
+} from '../interface.uts'
+
+function resolveFormat(format : MqCaptureFormat | null) : MqCaptureFormat {
+  return format == 'jpg' ? 'jpg' : 'png'
+}
+
+function resolveQuality(quality : number | null) : number {
+  if (quality == null || quality < 1) {
+    return 90
+  }
+  if (quality > 100) {
+    return 100
+  }
+  return quality
+}
+
+function cacheDir() : string {
+  const paths = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, true)
+  if (paths.length > 0) {
+    return paths[0]
+  }
+  return ''
+}
+
+function saveImage(image : UIImage, format : MqCaptureFormat, quality : number) : MqCaptureResult | null {
+  const dir = cacheDir()
+  if (dir.length == 0) {
+    return null
+  }
+  const name = `mq_shot_${Date.now()}.${format}`
+  const path = `${dir}/${name}`
+  let data : NSData | null = null
+  if (format == 'jpg') {
+    data = UIImageJPEGRepresentation(image, quality / 100.0)
+  } else {
+    data = UIImagePNGRepresentation(image)
+  }
+  if (data == null) {
+    return null
+  }
+  const ok = data!.writeToFile(path, true)
+  if (!ok) {
+    return null
+  }
+  return {
+    path: path,
+    width: Math.floor(image.size.width),
+    height: Math.floor(image.size.height),
+  } as MqCaptureResult
+}
+
+function finishFail(options : MqCaptureScreenOptions | MqStitchImagesOptions, code : number) {
+  const err = new MqCaptureFailImpl(code as any)
+  options.fail?.(err)
+  options.complete?.(err)
+}
+
+function finishOk(options : MqCaptureScreenOptions | MqStitchImagesOptions, result : MqCaptureResult) {
+  options.success?.(result)
+  options.complete?.(result)
+}
+
+export const captureScreen : MqCaptureScreen = function (options : MqCaptureScreenOptions) {
+  const format = resolveFormat(options.format ?? null)
+  const quality = resolveQuality(options.quality ?? null)
+  const window = UIApplication.sharedApplication.keyWindow
+  if (window == null) {
+    finishFail(options, 9011003)
+    return
+  }
+  const size = window!.bounds.size
+  UIGraphicsBeginImageContextWithOptions(size, false, window!.screen.scale)
+  window!.drawViewHierarchyInRect(window!.bounds, true)
+  const image = UIGraphicsGetImageFromCurrentImageContext()
+  UIGraphicsEndImageContext()
+  if (image == null) {
+    finishFail(options, 9011003)
+    return
+  }
+  const result = saveImage(image!, format, quality)
+  if (result == null) {
+    finishFail(options, 9011005)
+    return
+  }
+  finishOk(options, result!)
+}
+
+export const stitchImages : MqStitchImages = function (options : MqStitchImagesOptions) {
+  const paths = options.paths
+  if (paths.length == 0) {
+    finishFail(options, 9011002)
+    return
+  }
+  const format = resolveFormat(options.format ?? null)
+  const quality = resolveQuality(options.quality ?? null)
+
+  const images = new Array<UIImage>()
+  let width = 0.0
+  let totalHeight = 0.0
+
+  for (let i = 0; i < paths.length; i++) {
+    const image = new UIImage(contentsOfFile = paths[i])
+    if (image == null) {
+      finishFail(options, 9011004)
+      return
+    }
+    images.push(image!)
+    width = Math.max(width, image!.size.width)
+    const keep = options.sliceHeights != null && options.sliceHeights!.length > i
+      ? options.sliceHeights![i].toDouble()
+      : image!.size.height
+    totalHeight += keep
+  }
+
+  if (width <= 0 || totalHeight <= 0) {
+    finishFail(options, 9011004)
+    return
+  }
+
+  UIGraphicsBeginImageContextWithOptions(CGSizeMake(width, totalHeight), false, 0.0)
+  let offset = 0.0
+  for (let i = 0; i < images.length; i++) {
+    const image = images[i]
+    const cropTop = options.sliceOffsets != null && options.sliceOffsets!.length > i
+      ? options.sliceOffsets![i].toDouble()
+      : 0.0
+    const keep = options.sliceHeights != null && options.sliceHeights!.length > i
+      ? options.sliceHeights![i].toDouble()
+      : image.size.height
+    image.draw(CGRectMake(0.0, offset - cropTop, image.size.width, image.size.height))
+    offset += keep
+  }
+  const out = UIGraphicsGetImageFromCurrentImageContext()
+  UIGraphicsEndImageContext()
+  if (out == null) {
+    finishFail(options, 9011004)
+    return
+  }
+  const result = saveImage(out!, format, quality)
+  if (result == null) {
+    finishFail(options, 9011005)
+    return
+  }
+  finishOk(options, result!)
+}

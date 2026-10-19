@@ -1,0 +1,23 @@
+import { MqCaptureErrorCode, MqCaptureFail } from './interface.uts'
+
+export const UniErrorSubject = 'mosquito-screenshot'
+
+export const MqCaptureErrors : Map<MqCaptureErrorCode, string> = new Map([
+  [9011001 as MqCaptureErrorCode, '当前平台不支持截屏'],
+  [9011002 as MqCaptureErrorCode, '参数非法'],
+  [9011003 as MqCaptureErrorCode, '截屏失败'],
+  [9011004 as MqCaptureErrorCode, '拼接失败'],
+  [9011005 as MqCaptureErrorCode, '文件读写失败'],
+  [9011006 as MqCaptureErrorCode, '超出允许的最大高度'],
+])
+
+export class MqCaptureFailImpl extends UniError implements MqCaptureFail {
+  override errCode : MqCaptureErrorCode
+
+  constructor(errCode : MqCaptureErrorCode) {
+    super()
+    this.errSubject = UniErrorSubject
+    this.errCode = errCode
+    this.errMsg = MqCaptureErrors.get(errCode) ?? '未知错误'
+  }
+}

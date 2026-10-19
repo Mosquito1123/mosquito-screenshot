@@ -1,0 +1,67 @@
+/**
+ * 蚊式截屏插件对外契约。
+ * uni-app / uni-app x 共用；各端在 app-android / app-ios / web 等目录实现。
+ */
+
+export type MqCaptureFormat = 'png' | 'jpg'
+
+/**
+ * 单屏截图参数。
+ */
+export type MqCaptureScreenOptions = {
+  /** 输出格式，默认 png。 */
+  format ?: MqCaptureFormat
+  /** jpg 质量，1–100，默认 90。 */
+  quality ?: number
+  success ?: (res : MqCaptureResult) => void
+  fail ?: (res : MqCaptureFail) => void
+  complete ?: (res : any) => void
+}
+
+/**
+ * 多图纵向拼接参数。用于长图：先滚动截多屏，再交给原生拼接。
+ */
+export type MqStitchImagesOptions = {
+  /** 按从上到下顺序的临时图片路径。 */
+  paths : string[]
+  format ?: MqCaptureFormat
+  quality ?: number
+  /**
+   * 每张切片里需要保留的高度（像素）。
+   * 不传则整张使用。最后一张通常更短。
+   */
+  sliceHeights ?: number[]
+  /**
+   * 每张切片从顶部裁掉的高度（像素），用于去掉重叠。
+   * 与 sliceHeights 等长；可不传。
+   */
+  sliceOffsets ?: number[]
+  success ?: (res : MqCaptureResult) => void
+  fail ?: (res : MqCaptureFail) => void
+  complete ?: (res : any) => void
+}
+
+export type MqCaptureResult = {
+  /** 截图本地路径（file:// 或绝对路径，视平台而定）。 */
+  path : string
+  width : number
+  height : number
+}
+
+/**
+ * 错误码
+ * - 9011001 当前平台不支持
+ * - 9011002 参数非法
+ * - 9011003 截屏失败
+ * - 9011004 拼接失败
+ * - 9011005 文件读写失败
+ * - 9011006 超出允许的最大高度
+ */
+export type MqCaptureErrorCode = 9011001 | 9011002 | 9011003 | 9011004 | 9011005 | 9011006
+
+export interface MqCaptureFail extends IUniError {
+  errCode : MqCaptureErrorCode
+}
+
+export type MqCaptureScreen = (options : MqCaptureScreenOptions) => void
+export type MqStitchImages = (options : MqStitchImagesOptions) => void
