@@ -2,7 +2,7 @@
 
 UTS 截屏 / 截长图插件，兼容 **uni-app（Vue 3）** 与 **uni-app x**。
 
-- App Android / iOS：原生截当前窗口，并把多张切片拼成长图
+- App Android / iOS / HarmonyOS：原生截当前窗口，并把多张切片拼成长图
 - 组件 `mq-screenshot`：编排「滚动 → 截屏 → 拼接」
 - H5 / 小程序：明确返回不支持（浏览器与小程序没有稳定的整窗截屏能力）
 
@@ -123,9 +123,9 @@ uni-app x 把扩展名改成 `.uvue`。x 端截长图请传入 `content-height`�
 | --- | --- | --- |
 | App Android | PixelCopy（API 26+），低版本 View.draw | 组件滚动 + `stitchImages` |
 | App iOS | 关键窗口快照 | 同上 |
+| App HarmonyOS | `Window.snapshot` → PixelMap（API 12+，HBuilderX 4.61+） | 同上 |
 | H5 | 不支持（9011001） | 不支持 |
 | 微信小程序 | 不支持（9011001） | 不支持 |
-| Harmony | 本版未实现 | 本版未实现 |
 
 ## 注意
 
@@ -143,6 +143,9 @@ mosquito-screenshot/
     unierror.uts
     app-android/index.uts
     app-ios/index.uts
+    app-harmony/
+      index.uts
+      ScreenshotNative.ets
     web/index.uts
     mp-weixin/index.uts
   components/mq-screenshot/

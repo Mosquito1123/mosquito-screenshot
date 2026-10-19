@@ -2,11 +2,12 @@
   "id": "mosquito-screenshot",
   "name": "@mosquito/uts-screenshot",
   "displayName": "蚊式截屏 / 截长图",
-  "version": "0.1.0",
-  "description": "UTS 截屏与截长图插件，兼容 uni-app 与 uni-app x。App 端原生实现，组件层编排长图滚动。",
+  "version": "0.1.1",
+  "description": "UTS 截屏与截长图插件，兼容 uni-app 与 uni-app x（含 HarmonyOS）。App 端原生实现，组件层编排长图滚动。",
   "keywords": [
     "uni-app",
     "uni-app-x",
+    "harmonyos",
     "uts",
     "screenshot",
     "截屏",
@@ -76,7 +77,10 @@
               "extVersion": "",
               "minVersion": ""
             },
-            "app-harmony": "n",
+            "app-harmony": {
+              "extVersion": "",
+              "minVersion": "12"
+            },
             "mp-weixin": "n",
             "mp-alipay": "n",
             "h5": "u"
@@ -90,7 +94,10 @@
               "extVersion": "",
               "minVersion": ""
             },
-            "app-harmony": "n",
+            "app-harmony": {
+              "extVersion": "",
+              "minVersion": "12"
+            },
             "mp-weixin": "n",
             "mp-alipay": "n",
             "h5": "u"
@@ -105,7 +112,10 @@
             "extVersion": "",
             "minVersion": ""
           },
-          "app-harmony": "n",
+          "app-harmony": {
+            "extVersion": "",
+            "minVersion": "12"
+          },
           "mp-weixin": "n",
           "web": "u"
         }

@@ -1,0 +1,107 @@
+/**
+ * HarmonyOS：窗口 snapshot + PixelMap 纵向拼接。
+ * 截屏/拼图细节在 ScreenshotNative.ets；本文件对接插件回调契约。
+ * 需 HBuilderX 4.61+ / Harmony API 12+。
+ */
+import { MqCaptureFailImpl } from '../unierror.uts'
+import {
+  MqCaptureFormat,
+  MqCaptureResult,
+  MqCaptureScreen,
+  MqCaptureScreenOptions,
+  MqStitchImages,
+  MqStitchImagesOptions,
+} from '../interface.uts'
+import { ScreenshotNative } from './ScreenshotNative.ets'
+
+function resolveFormat(format : MqCaptureFormat | null) : MqCaptureFormat {
+  return format == 'jpg' ? 'jpg' : 'png'
+}
+
+function resolveQuality(quality : number | null) : number {
+  if (quality == null || quality < 1) {
+    return 90
+  }
+  if (quality > 100) {
+    return 100
+  }
+  return quality
+}
+
+function finishFail(options : MqCaptureScreenOptions | MqStitchImagesOptions, code : number) {
+  const err = new MqCaptureFailImpl(code as any)
+  options.fail?.(err)
+  options.complete?.(err)
+}
+
+function finishOk(options : MqCaptureScreenOptions | MqStitchImagesOptions, result : MqCaptureResult) {
+  options.success?.(result)
+  options.complete?.(result)
+}
+
+function mapNativeError(e : any) : number {
+  const code = e?.code
+  if (code == 9011002) {
+    return 9011002
+  }
+  if (code == 9011004) {
+    return 9011004
+  }
+  if (code == 9011005) {
+    return 9011005
+  }
+  return 9011003
+}
+
+export const captureScreen : MqCaptureScreen = function (options : MqCaptureScreenOptions) {
+  const format = resolveFormat(options.format ?? null)
+  const quality = resolveQuality(options.quality ?? null)
+  const win = UTSHarmony.getCurrentWindow()
+  const context = UTSHarmony.getUIAbilityContext()
+  if (win == null || context == null) {
+    finishFail(options, 9011003)
+    return
+  }
+  ScreenshotNative.captureWindow(win!, context!, format, quality).then((native) => {
+    const result : MqCaptureResult = {
+      path: native.path,
+      width: native.width,
+      height: native.height,
+    }
+    finishOk(options, result)
+  }).catch((e) => {
+    finishFail(options, mapNativeError(e))
+  })
+}
+
+export const stitchImages : MqStitchImages = function (options : MqStitchImagesOptions) {
+  const paths = options.paths
+  if (paths.length == 0) {
+    finishFail(options, 9011002)
+    return
+  }
+  const format = resolveFormat(options.format ?? null)
+  const quality = resolveQuality(options.quality ?? null)
+  const context = UTSHarmony.getUIAbilityContext()
+  if (context == null) {
+    finishFail(options, 9011005)
+    return
+  }
+  const heights = options.sliceHeights ?? null
+  const offsets = options.sliceOffsets ?? null
+  ScreenshotNative.stitchImages(context!, paths, format, quality, heights, offsets).then((native) => {
+    const result : MqCaptureResult = {
+      path: native.path,
+      width: native.width,
+      height: native.height,
+    }
+    finishOk(options, result)
+  }).catch((e) => {
+    const code = e?.code
+    if (code == 9011002 || code == 9011004 || code == 9011005) {
+      finishFail(options, code as number)
+      return
+    }
+    finishFail(options, 9011004)
+  })
+}
